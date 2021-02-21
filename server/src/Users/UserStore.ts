@@ -1,6 +1,6 @@
 import { Server, Socket } from "socket.io";
-import User from "./User";
-import Room from "../rooms/Room";
+import User from "../../../src/User";
+import Room from "../../../src/Room";
 
 export default class UserStore
 {

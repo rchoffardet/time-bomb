@@ -4,51 +4,64 @@
         <button @click="share">Partager</button>
         <button @click="quit">Quitter la partie</button>
     </nav>
-    <div v-if="true">
+    <div v-if="false">
         <h2>participants</h2>
         <ul>
-            <li v-for="user in users">
+            <li v-for="user in room.players">
                 {{user.name}} (#{{user.id}})
             </li>
         </ul>
     </div>
     <div class="board" v-if="true">
-        <div class="line" v-for="user in users" :key="user.id">
-            <div class="user you">
+        <div :class="{line: true, you: isYou(user)}" v-for="user in room.players" :key="user.id">
+            <div :class="{user: true, host: isHost(user)}">
                 {{ getInitials(user.name) }}
             </div>
             <div class="cards">
-                <div class="card" v-for="index in 5" :key="index">
+                <div :class="{card:true, picked:card.picked}" v-for="(card, index) in cards[user.id]" :key="index" @click="pickCard(user.id, index)">
                     <div class="inner">
-                        <div class="frontside neutral"></div>
-                        <div class="backside"></div>
+                        <div :class="['frontside', card.type]"></div>
+                        <div :class="'backside'"></div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <div>
-        <button>Commencer la partie</button>
+    <div v-if="isHost(user)">
+        <button @click="startGame">Commencer la partie</button>
     </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, ref, computed } from "vue";
+import { defineComponent, onMounted, ref, computed, h } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useSocket } from "./useSocket";
-import User from "./User";
+import  useUser from "./useUser";
+import User from "../../src/User";
+import Room from "../../src/Room";
+import { uid } from "uid";
+import Card from "../../src/Card";
 
 const Component = defineComponent({
     setup() {
         const route = useRoute();
         const router = useRouter();
         const { socket } = useSocket()
+        const { user } = useUser()
 
         const roomId = ref(route.params["roomId"] as string);
-        const users = ref<User[]>([])
-        socket.on("sync-room", (payload: User[]) => {
-            console.log(payload)
-            users.value = payload
+        const room = ref<Room>(new Room(uid(), new User(uid(), ""), undefined))
+
+        const cards = computed(() => {
+            if(room.value.game == null) {
+                return {} as {[id:string]: Card[]} 
+            }
+
+            return room.value.game.cards
+        })
+
+        socket.on("sync-room", (payload: Room) => {
+            room.value = payload
         })
         socket.emit("join-room", roomId.value);
 
@@ -63,6 +76,14 @@ const Component = defineComponent({
                 .toUpperCase();
         }
 
+        function isHost(x: User) {
+            return user.id == room.value.host.id
+        }
+
+        function isYou(x: User) {
+            return user.id ==  x.id
+        }
+
         function quit() {
             socket.emit("leave-room", roomId.value);
             router.push({name:"home"})
@@ -74,15 +95,31 @@ const Component = defineComponent({
             navigator.clipboard.writeText(url);
         }
 
+        function startGame() {
+            
+            socket.emit("start-game", roomId.value);
+        }
+
+        function pickCard(playerId: string, index:number) {
+            
+            socket.emit("pick-card", {roomId: roomId.value, playerId, index});
+        }
+
         onMounted(() => {
         })
 
         return {
             roomId,
             quit,
-            users,
+            room,
             share,
-            getInitials
+            getInitials,
+            isHost,
+            user,
+            isYou,
+            startGame,
+            cards,
+            pickCard
         }
     }
 });
@@ -116,7 +153,7 @@ export default Component
     border-radius: 100px;
     margin-right: 50px;
 }
-.user.you {
+.you .user {
     border: 5px solid gold;
 }
 .cards {
@@ -165,12 +202,15 @@ export default Component
   background-color: gray;
 }
 
-.card .inner .frontside.good{
+.card .inner .frontside.wire{
   background-color: lime;
 }
 
+.card.picked .inner{
+    transform: rotateY(180deg)
+}
 
-.card:hover .inner{
+.you .card:hover .inner{
     transform: rotateY(180deg)
 }
 </style>

@@ -7,7 +7,7 @@ import { defineComponent, watch, reactive, onMounted } from "vue";
 import useUser from "./useUser";
 import Login from "./Login.vue"
 import { useSocket } from "./useSocket";
-import User from "./User";
+import User from "../../src/User";
 
 export default defineComponent({
     setup() {

@@ -1,13 +1,7 @@
 # time-bomb
 
-## Serveur 
-Pour démarrer le serveur 
+Pour lancer le serveur et le client
 ```bash
-npm i -g vite
-cd server && npm ci && vite
+npm ci
+npm run start
 ```
-
-## Client
-Pour démarrer le client
-```bash
-cd client && npm ci && npm run dev

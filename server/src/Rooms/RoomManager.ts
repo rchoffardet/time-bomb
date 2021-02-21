@@ -1,5 +1,5 @@
-import Room from "./Room";
-import User from "../Users/User";
+import Room from "../../../src/Room";
+import User from "../../../src/User";
 import RoomStore from "./RoomStore";
 
 export default class RoomManager
@@ -11,18 +11,24 @@ export default class RoomManager
     ){ }
 
     add(user: User) {
-        this.room.players.set(user.id, user)
+        if(user != null)
+            this.room.players[user.id] = user
     }
 
     remove(user: User) {
-        this.room.players.delete(user.id)
+        delete this.room.players[user.id]
 
         if(this.isEmpty()) {
             this.roomStore.remove(this.room);
         }
+
+        if(this.room.host.id == user.id) {
+            const newHost = Object.values(this.room.players)[0] as User;
+            this.room.host = newHost;
+        }
     }
 
     isEmpty() {
-        return this.room.players.size == 0
+        return Object.keys(this.room.players).length == 0
     }
 }

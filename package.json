@@ -1,0 +1,16 @@
+{
+  "name": "time-bomb",
+  "version": "0.0.0",
+  "scripts": {
+    "client:start": "cd client && npm run dev",
+    "client:install": "cd client && npm ci",
+    "server:start": "cd server && npm run start",
+    "server:install": "cd server && npm ci",
+    "start": "concurrently \"npm run client:start\" \"npm run server:start\"",
+    "install": "concurrently \"npm run client:install\" \"npm run server:install\""
+  },
+  "dependencies": {
+    "concurrently": "^6.0.0"
+  },
+  "devDependencies": {}
+}

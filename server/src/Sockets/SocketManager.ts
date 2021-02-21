@@ -1,8 +1,8 @@
 import { Server, Socket } from "socket.io";
-import Room from "../rooms/Room";
+import Room from "../../../src/Room";
 import RoomStore from "../Rooms/RoomStore";
 import UserStore from "../Users/UserStore";
-import User from "../Users/User";
+import User from "../../../src/User";
 
 export default class SocketManager
 {
@@ -15,18 +15,16 @@ export default class SocketManager
 
     join(room: Room) {
         this.socket.join(room.id);
-        this.debug("joined room", room.id);
     }
 
     leave(room: Room) {
         this.socket.leave(room.id);
-        this.debug("joined room", room.id);
     }
 
     get rooms() {
         return Array.from(this.socket.rooms)
             .filter(x => x != this.socket.id)
-            .map(x => this.roomStore.getOrCreate(x))
+            .map(x => this.roomStore.get(x))
     }
 
     get user() {
@@ -35,10 +33,10 @@ export default class SocketManager
 
     set user(user: User) {
         this.userStore.store(this.socket, user);
-        this.debug("synced user", JSON.stringify(user))
     }
 
     debug(title: string, message: string) {
-        this.socket.emit("debug", title + ": " + message)
+        const payload = title + ": " + message
+        this.socket.emit("debug", payload)
     }
 }

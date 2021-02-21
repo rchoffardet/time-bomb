@@ -1,12 +1,12 @@
 import * as express from "express";
 import { createServer } from "http";
 import { Server, Socket } from "socket.io";
-import Room from "./rooms/Room";
 import UserStore from "./Users/UserStore";
 import RoomManager from "./Rooms/RoomManager";
 import SocketManager from "./Sockets/SocketManager";
 import RoomStore from "./Rooms/RoomStore";
-import User from "./Users/User";
+import User from "../../src/User";
+import Game, { createGame } from "../../src/Game";
 
 const app = express();
 const http = createServer(app);
@@ -30,40 +30,58 @@ io.on("connection", (socket:Socket) => {
 
     socket.on("sync-user", (user: User) => {
         socketManager.user = user;
+        console.log("sync")
     });
 
     socket.on("join-room", (roomId:string) => {
-        const room = roomStore.getOrCreate(roomId)
+        const room = roomStore.getOrCreate(roomId, socketManager.user)
+        
         const roomManager = new RoomManager(room, roomStore);
         roomManager.add(socketManager.user)
 
         socketManager.join(room)
-        
-        io.to(roomId).emit("sync-room", users.getByRoom(room))
+        console.log(room)
+        io.to(roomId).emit("sync-room", room)
     });
 
     socket.on("leave-room", (roomId:string) => {
-        const room = roomStore.getOrCreate(roomId)
+        const room = roomStore.get(roomId)
         const roomManager = new RoomManager(room, roomStore);
         roomManager.remove(socketManager.user)
 
         socketManager.leave(room)
         
-        io.to(roomId).emit("sync-room", users.getByRoom(room))
+        io.to(roomId).emit("sync-room", room)
     });
 
     socket.on("disconnected", (reason) => {
         const user = socketManager.user
-        socketManager.rooms.map(x => new RoomManager(x, roomStore).remove(user))
+        socketManager.rooms
+            .forEach(x => {
+                new RoomManager(x, roomStore).remove(user);
+                io.to(x.id).emit("sync-room", x)
+            })
+        
     })
 
     socket.on("start-game", (roomId:string) => {
+        const room = roomStore.get(roomId)
+        const game = createGame(Object.values(room.players))
 
+        room.game = game;
+        io.to(roomId).emit("sync-room", room)
     })
+
+    socket.on("pick-card", ({roomId, playerId, index}:{roomId:string, playerId:string, index:number}) => {
+        const room = roomStore.get(roomId)
+        room.game.cards[playerId][index].picked = true
+        console.log(room)
+        io.to(roomId).emit("sync-room", room)
+    })
+
 })
 
 http.listen(3000, () => {
     console.log('listening on *:3000');
-    console.log(__dirname + "../../client/dist")
   });
 
