@@ -7,10 +7,13 @@
     "server:start": "cd server && npm run start",
     "server:install": "cd server && npm ci",
     "start": "concurrently \"npm run client:start\" \"npm run server:start\"",
-    "install": "concurrently \"npm run client:install\" \"npm run server:install\""
+    "install": "concurrently \"npm run client:install\" \"npm run server:install\"",
+    "build": "cd client && npm run build"
   },
   "dependencies": {
-    "concurrently": "^6.0.0"
+    "concurrently": "^6.0.0",
+    "typescript-is": "^0.17.1",
+    "uid": "^2.0.0"
   },
   "devDependencies": {}
 }

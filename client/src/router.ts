@@ -6,7 +6,6 @@ import Invite from "./Invite.vue";
 const routes = [
  { path: '/', name:"home", component: Home },
  { path: '/room/:roomId', name:"room", component: Room },
- { path: '/invite/:roomId', name:"invite", component: Invite },
 ];
 
 const router = createRouter({

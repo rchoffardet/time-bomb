@@ -13,8 +13,17 @@
         </ul>
     </div>
     <div class="board" v-if="true">
+        <h3 v-if="room.game && !room.game.ended">
+            {{ currentPlayer.name }} doit couper un fil ! (fils restants: {{ wiresLeft }})
+        </h3>
+        <h3 v-if="room.game && room.game.doBadGuysHaveWon">
+            Les méchants ont gagné !
+        </h3>
+        <h3 v-if="room.game && room.game.doGoodGuysHaveWon">
+            Les gentils ont gagné !
+        </h3>
         <div :class="{line: true, you: isYou(user)}" v-for="user in room.players" :key="user.id">
-            <div :class="{user: true, host: isHost(user)}">
+            <div :class="{user: true, host: isHost(user), bad:isBadGuy(user)}">
                 {{ getInitials(user.name) }}
             </div>
             <div class="cards">
@@ -28,18 +37,19 @@
         </div>
     </div>
     <div v-if="isHost(user)">
-        <button @click="startGame">Commencer la partie</button>
+        <button @click="startGame" v-if="room.game == undefined">Commencer la partie</button>
+        <button @click="startGame" v-if="room.game != undefined">Recommencer la partie</button>
+        <button @click="nextRound" v-if="room.game != undefined && room.game.cutsLeftCount == 0">Tour suivant</button>
     </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, ref, computed, h } from "vue";
+import { defineComponent, onMounted, ref, computed, h, reactive } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useSocket } from "./useSocket";
 import  useUser from "./useUser";
-import User from "../../src/User";
-import Room from "../../src/Room";
-import { uid } from "uid";
+import User, { createUser } from "../../src/User";
+import Room, { createRoom, RoomSerialized } from "../../src/Room";
 import Card from "../../src/Card";
 
 const Component = defineComponent({
@@ -50,7 +60,7 @@ const Component = defineComponent({
         const { user } = useUser()
 
         const roomId = ref(route.params["roomId"] as string);
-        const room = ref<Room>(new Room(uid(), new User(uid(), ""), undefined))
+        const room = ref(reactive(createRoom()))
 
         const cards = computed(() => {
             if(room.value.game == null) {
@@ -60,14 +70,38 @@ const Component = defineComponent({
             return room.value.game.cards
         })
 
-        socket.on("sync-room", (payload: Room) => {
-            room.value = payload
+        const currentPlayer = computed(() => {
+            if(room.value.game == null) {
+                return createUser();
+            }
+
+            return room.value.players[room.value.game.cutter];
         })
+
+        const wiresLeft = computed(() => {
+            if(room.value.game == null) {
+                return 0;
+            }
+
+            return room.value.game.wiresLeft
+        })
+
+        socket.on("sync-room", (payload: RoomSerialized) => {
+            room.value = reactive(Room.fromJson(payload))
+        })
+
+        socket.on("flush-room", () => {
+            if(!room.value.game) {
+                return;
+            }
+            
+            room.value.game.cards = {};
+        })
+
         socket.emit("join-room", roomId.value);
 
         function getInitials(name: string)
         {
-            console.log(name)
             return name
                 .split(" ")
                 .slice(0, 2)
@@ -84,13 +118,17 @@ const Component = defineComponent({
             return user.id ==  x.id
         }
 
+        function isBadGuy(x: User) {
+            return room.value.game?.badguysIds.includes(x.id)
+        }
+
         function quit() {
             socket.emit("leave-room", roomId.value);
             router.push({name:"home"})
         }
 
         function share() {
-            const route = router.resolve({name:"invite", params:{roomId:roomId.value}})
+            const route = router.resolve({name:"invite", params:{roomId:roomId.value}});
             const url = window.location.origin + "#" + route.fullPath;
             navigator.clipboard.writeText(url);
         }
@@ -100,13 +138,15 @@ const Component = defineComponent({
             socket.emit("start-game", roomId.value);
         }
 
+        function nextRound() {
+            
+            socket.emit("next-turn", roomId.value);
+        }
+
         function pickCard(playerId: string, index:number) {
             
             socket.emit("pick-card", {roomId: roomId.value, playerId, index});
         }
-
-        onMounted(() => {
-        })
 
         return {
             roomId,
@@ -119,7 +159,11 @@ const Component = defineComponent({
             isYou,
             startGame,
             cards,
-            pickCard
+            pickCard,
+            isBadGuy,
+            currentPlayer,
+            wiresLeft,
+            nextRound
         }
     }
 });
@@ -156,15 +200,20 @@ export default Component
 .you .user {
     border: 5px solid gold;
 }
+.user.bad  {
+    background-color: red;
+}
+
 .cards {
     flex: 1;
+    width: 50px;
     display: flex;
     flex-direction: row;
     padding: 10px;
 }
 .card {
     height: 100%;
-    flex: 1;
+    width: 65px;
     margin: 0 10px;
     background-color: transparent;
     perspective: 1000px;
@@ -210,7 +259,7 @@ export default Component
     transform: rotateY(180deg)
 }
 
-.you .card:hover .inner{
+.you:hover .card .inner{
     transform: rotateY(180deg)
 }
 </style>

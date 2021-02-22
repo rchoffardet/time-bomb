@@ -17,8 +17,6 @@ export default defineComponent({
         function sync(user: User)
         {
             socket.emit("sync-user", user);
-            console.log("synced")
-
         }
 
         watch(user, (_) => sync(_))

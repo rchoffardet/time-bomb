@@ -1,10 +1,9 @@
 import { useStorage } from "./useStorage";
-import User from "../../src/User";
-import { ref, watch, toRef, reactive } from "vue";
-import { uid } from "uid";
+import { createUser } from "../../src/User";
+import { watch, reactive } from "vue";
 
 const { getJson, setJson } = useStorage();
-const value = getJson("user", new User(uid(), ""));
+const value = getJson("user", createUser());
 const user = reactive(value);
 
 watch(user, (_) => { 

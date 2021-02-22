@@ -25,6 +25,7 @@ export default class SocketManager
         return Array.from(this.socket.rooms)
             .filter(x => x != this.socket.id)
             .map(x => this.roomStore.get(x))
+            .filter(x =>  x) // retire les rooms nulles
     }
 
     get user() {
@@ -33,10 +34,5 @@ export default class SocketManager
 
     set user(user: User) {
         this.userStore.store(this.socket, user);
-    }
-
-    debug(title: string, message: string) {
-        const payload = title + ": " + message
-        this.socket.emit("debug", payload)
     }
 }

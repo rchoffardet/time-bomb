@@ -5,6 +5,15 @@ export default class Card
         public picked:boolean = false
     )
     { }
+
+    static fromJson(payload: CardSerialized) {
+        const card = new Card(
+            payload.type as CardType,
+            payload.picked
+        )
+
+        return card;
+    }
 }
 
 export enum CardType 
@@ -13,3 +22,6 @@ export enum CardType
     Wire = "wire",
     BigBen = "bigben"
 }
+
+export type CardTypeSerialized = CardType
+export type CardSerialized = {type: CardTypeSerialized, picked: boolean}

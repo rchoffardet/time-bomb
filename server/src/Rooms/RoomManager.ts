@@ -11,7 +11,7 @@ export default class RoomManager
     ){ }
 
     add(user: User) {
-        if(user != null)
+        if(user != null && this.room != null)
             this.room.players[user.id] = user
     }
 
