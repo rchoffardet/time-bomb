@@ -7,7 +7,7 @@
     "server:start": "cd server && npm run start",
     "server:install": "cd server && npm ci",
     "dev": "concurrently \"npm run client:start\" \"npm run server:start\"",
-    "install": "concurrently \"npm run client:install\" \"npm run server:install\"",
+    "install": "npm ci && concurrently \"npm run client:install\" \"npm run server:install\"",
     "build": "cd client && npm run build",
     "start": "npm run server:start"
   },
