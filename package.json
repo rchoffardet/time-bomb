@@ -6,9 +6,10 @@
     "client:install": "cd client && npm ci",
     "server:start": "cd server && npm run start",
     "server:install": "cd server && npm ci",
-    "start": "concurrently \"npm run client:start\" \"npm run server:start\"",
+    "dev": "concurrently \"npm run client:start\" \"npm run server:start\"",
     "install": "concurrently \"npm run client:install\" \"npm run server:install\"",
-    "build": "cd client && npm run build"
+    "build": "cd client && npm run build",
+    "start": "npm run server:start"
   },
   "dependencies": {
     "concurrently": "^6.0.0",
