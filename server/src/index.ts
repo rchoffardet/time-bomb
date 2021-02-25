@@ -13,7 +13,7 @@ const app = express();
 const http = createServer(app);
 export const io = new Server(http, {
     cors: {
-        origin: "http://localhost:3001",
+        origin: "*",
         methods: ["GET", "POST"]
     }
 });

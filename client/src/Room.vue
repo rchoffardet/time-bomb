@@ -23,7 +23,7 @@
             Les gentils ont gagné !
         </h3>
         <div :class="{line: true, you: isYou(user)}" v-for="user in room.players" :key="user.id">
-            <div :class="{user: true, host: isHost(user), bad:isBadGuy(user)}">
+            <div :class="{user: true, host: isHost(user), bad:isBadGuy(user) && isYou(user)}">
                 {{ getInitials(user.name) }}
             </div>
             <div class="cards">
