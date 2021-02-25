@@ -209,8 +209,8 @@ export default Component
 .you .user {
     border: 5px solid gold;
 }
-.you .current {
-        box-shadow: 0 0 5pt 5pt orange;
+.current {
+    box-shadow: 0 0 5pt 5pt orange;
 }
 .user.bad  {
     background-color: red;
