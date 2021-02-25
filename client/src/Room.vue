@@ -23,7 +23,7 @@
             Les gentils ont gagné !
         </h3>
         <div :class="{line: true, you: isYou(user)}" v-for="user in room.players" :key="user.id">
-            <div :class="{user: true, host: isHost(user), bad:isBadGuy(user) && isYou(user)}">
+            <div :class="{user: true, host: isHost(user), bad:isBadGuy(user) && isYou(user), current: isCurrent(user)}">
                 {{ getInitials(user.name) }}
             </div>
             <div class="cards">
@@ -110,6 +110,14 @@ const Component = defineComponent({
                 .toUpperCase();
         }
 
+        function isCurrent(x: User) {
+            if(room.value.game == null) {
+                return false;
+            }
+
+            return user.id == room.value.game.cutter
+        }
+
         function isHost(x: User) {
             return user.id == room.value.host.id
         }
@@ -163,7 +171,8 @@ const Component = defineComponent({
             isBadGuy,
             currentPlayer,
             wiresLeft,
-            nextRound
+            nextRound,
+            isCurrent
         }
     }
 });
@@ -199,6 +208,9 @@ export default Component
 }
 .you .user {
     border: 5px solid gold;
+}
+.you .current {
+    outline: 5px solid lightblue;
 }
 .user.bad  {
     background-color: red;
