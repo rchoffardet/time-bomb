@@ -50,7 +50,7 @@ export function createGame(playersIds: string[])
     const roundsCount = 4
     const wireCount = playersIds.length;
     const cards = generateCards(playersIds.length, roundsCount, wireCount)
-    const badguysCount = playersIds.length <= 6 ? 2 : 3;
+    const badguysCount = getBadGuysCount(playersIds.length);
 
     return new Game(
         playersIds,
@@ -61,6 +61,28 @@ export function createGame(playersIds: string[])
         roundsCount,
         playersIds[0]
     );
+}
+
+function getBadGuysCount(playerCount: number) {
+    switch(playerCount)
+    {
+        case 1:
+            return 0;
+        case 2:
+            return 1;
+        case 3:
+            return 1;
+        case 4:
+            return 1 + Math.round(Math.random());
+        case 5:
+            return 2;
+        case 6:
+            return 2;
+        case 7:
+            return 2 + Math.round(Math.random());
+        case 8:
+            return 3;
+    }
 }
 
 export function generateCards(playersCount: number, roundNumber: number, wireLeftCount = playersCount)
