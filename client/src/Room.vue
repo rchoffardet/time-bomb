@@ -115,15 +115,15 @@ const Component = defineComponent({
                 return false;
             }
 
-            return user.id == room.value.game.cutter
+            return x.id == room.value.game.cutter
         }
 
         function isHost(x: User) {
-            return user.id == room.value.host.id
+            return x.id == room.value.host.id
         }
 
         function isYou(x: User) {
-            return user.id ==  x.id
+            return x.id == user.id
         }
 
         function isBadGuy(x: User) {
@@ -210,7 +210,7 @@ export default Component
     border: 5px solid gold;
 }
 .you .current {
-    outline: 5px solid lightblue;
+        box-shadow: 0 0 5pt 5pt orange;
 }
 .user.bad  {
     background-color: red;
