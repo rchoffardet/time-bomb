@@ -50,6 +50,7 @@ jobs:
           echo VERSION=$VERSION
 
           docker tag $IMAGE_NAME $IMAGE_ID:$VERSION
+          docker push $IMAGE_ID:$VERSION
       - name: Create elease
         uses: actions/create-release@v1
         env:
@@ -63,4 +64,3 @@ jobs:
             - Second Change
           draft: false
           prerelease: false
-          docker push $IMAGE_ID:$VERSION
